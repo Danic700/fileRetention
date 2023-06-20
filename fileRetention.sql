@@ -3,10 +3,13 @@ CREATE TABLE files (
   file_data MEDIUMBLOB,
   file_name VARCHAR(255),
   file_hash VARCHAR(64),
-  links INT DEFAULT 0,
+  links INT DEFAULT null,
   created_at DATETIME,
   UNIQUE KEY unique_file_hash (file_hash)
 );
+
+ALTER TABLE files
+DROP COLUMN is_ready;
 
 
 CREATE TABLE links (
@@ -34,9 +37,11 @@ VALUES (@file_id, @link, 24, NOW());
 
 CREATE TRIGGER update_links_count AFTER INSERT ON links
 FOR EACH ROW
-	UPDATE files  
-	SET links = links + 1
+	UPDATE files
+	SET links = COALESCE(links, 0) + 1
 	WHERE id = NEW.file_id;
+
+DROP TRIGGER update_links_count;
 
 CREATE TRIGGER decrease_links_count AFTER DELETE ON links
 FOR EACH ROW
@@ -44,16 +49,24 @@ FOR EACH ROW
 	SET links = links - 1
 	WHERE id = OLD.file_id;
 
+DROP TRIGGER decrease_links_count;
+
+
 CREATE EVENT delete_files_event
 ON SCHEDULE EVERY 1 MINUTE
 DO
-  DELETE FROM files WHERE links = 0;
-  
+	DELETE FROM files WHERE links = 0;
+
+
+DROP EVENT delete_files_event;
+
 CREATE EVENT delete_expired_links
 ON SCHEDULE EVERY 1 MINUTE -- Adjust the schedule as needed
 DO
   DELETE FROM links WHERE created_at <= NOW() - INTERVAL ttl MINUTE;
 
+SELECT IS_USED_LOCK('file_update_lock');
+SELECT IS_FREE_LOCK('file_update_lock');
 
 SELECT * from files;
 SELECT * from links;
