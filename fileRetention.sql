@@ -1,3 +1,5 @@
+CREATE SCHEMA fileretention;
+
 CREATE TABLE file (
   id INT AUTO_INCREMENT PRIMARY KEY,
   file_data MEDIUMBLOB,
