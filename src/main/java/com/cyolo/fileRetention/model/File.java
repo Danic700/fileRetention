@@ -6,9 +6,9 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "files")
+@Table(name = "file")
 @Data
-public class Files {
+public class File {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,10 +32,10 @@ public class Files {
 
     // Constructors, getters, and setters
 
-    public Files() {
+    public File() {
     }
 
-    public Files(byte[] fileData, String fileName, String fileHash) {
+    public File(byte[] fileData, String fileName, String fileHash) {
         this.fileData = fileData;
         this.fileName = fileName;
         this.fileHash = fileHash;

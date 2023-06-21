@@ -6,9 +6,9 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "links")
+@Table(name = "link")
 @Data
-public class Links {
+public class Link {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,10 +28,10 @@ public class Links {
 
     // Constructors, getters, and setters
 
-    public Links() {
+    public Link() {
     }
 
-    public Links(Long fileId, String link, int ttl) {
+    public Link(Long fileId, String link, int ttl) {
         this.fileId = fileId;
         this.link = link;
         this.ttl = ttl;

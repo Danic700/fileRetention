@@ -1,9 +1,11 @@
 package com.cyolo.fileRetention.controller;
 
-import com.cyolo.fileRetention.model.Files;
+import com.cyolo.fileRetention.model.File;
+import com.cyolo.fileRetention.model.Link;
 import com.cyolo.fileRetention.service.FileService;
 import com.cyolo.fileRetention.service.LinkService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -12,7 +14,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import java.net.InetAddress;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -26,25 +27,33 @@ public class FileController {
     private final LinkService linkService;
 
 
-    @PutMapping("/file")
-    public ResponseEntity<String> uploadFile(@RequestPart  MultipartFile file,
-                                             @RequestHeader(value = "Retention-Time", defaultValue = "60") int retentionTime) throws IOException {
+    @Value("${shareableUrlPrefix}")
+    private String shareableUrlPrefix;
 
-        Long fileId = fileService.uploadFile(file);
-        String fileUrl = linkService.createLink(fileId, retentionTime);
-        String localHost = InetAddress.getLocalHost().getHostAddress();
-        return new ResponseEntity<>(localHost+ '/' + fileUrl,HttpStatus.CREATED);
+    @PutMapping("/file")
+    public ResponseEntity<String> uploadImage(@RequestPart  MultipartFile file,
+                                             @RequestHeader(value = "Retention-Time", defaultValue = "1") int retentionTime) throws IOException {
+
+        Optional<Link> link = fileService.upload(file, retentionTime);
+        if(link.isEmpty()){
+            return new ResponseEntity<>("Error in uploading file" ,HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        return new ResponseEntity<>(shareableUrlPrefix+ link.get().getLink() ,HttpStatus.CREATED);
     }
 
     @GetMapping("/{fileUrl}")
-    public ResponseEntity<Resource> getFile(@PathVariable String fileUrl) {
-        Long fileId = linkService.getLink(fileUrl);
-        Optional<Files> file =  fileService.retrieveFile(fileId);
+    public ResponseEntity<Resource> getImage(@PathVariable String fileUrl) {
+        Optional<Link> link = linkService.getLink(fileUrl);
+        if(link.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        Optional<File> file = fileService.retrieve(link.get().getFileId());
         if(file.isEmpty()){
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         // Retrieve the file data as a byte array from the repository or service
-        byte[] imageData = file.get().getFileData();// Fetch the file data by fileId
+        byte[] imageData = file.get().getFileData();// Fetch the image data by imageId
         Resource resource = new ByteArrayResource(imageData);
 
         // Set the response headers

@@ -1,12 +1,14 @@
 package com.cyolo.fileRetention.repository;
 
-import com.cyolo.fileRetention.model.Links;
+import com.cyolo.fileRetention.model.Link;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface LinkRepository extends JpaRepository<Links, Long> {
+import java.util.Optional;
 
-    Links findByLink(String link);
+@Repository
+public interface LinkRepository extends JpaRepository<Link, Long> {
+
+    Optional<Link> findByLink(String link);
 
 }

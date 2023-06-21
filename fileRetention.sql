@@ -1,4 +1,4 @@
-CREATE TABLE files (
+CREATE TABLE file (
   id INT AUTO_INCREMENT PRIMARY KEY,
   file_data MEDIUMBLOB,
   file_name VARCHAR(255),
@@ -8,65 +8,69 @@ CREATE TABLE files (
   UNIQUE KEY unique_file_hash (file_hash)
 );
 
-ALTER TABLE files
-DROP COLUMN is_ready;
 
-
-CREATE TABLE links (
+CREATE TABLE link (
   id INT AUTO_INCREMENT PRIMARY KEY,
   file_id INT,
   link VARCHAR(255),
   ttl INT,
   created_at DATETIME,
-  FOREIGN KEY (file_id) REFERENCES files(id)
+  FOREIGN KEY (file_id) REFERENCES file(id)
 );
 
 -- Insert the file into the 'files' table
-INSERT INTO files (file_data, file_name, file_hash, created_at)
-VALUES (LOAD_FILE('C:\Users\rezed\Downloads\StudyCertificateDanielCohen.jpg'), 'example.jpg', 'abcd12345', NOW());
+##INSERT INTO files (file_data, file_name, file_hash, created_at)
+##VALUES (LOAD_FILE('C:\Users\rezed\Downloads\StudyCertificateDanielCohen.jpg'), 'example.jpg', 'abcd12345', NOW());
 
 -- Retrieve the ID of the inserted file
-SET @file_id = LAST_INSERT_ID();
+##SET @file_id = LAST_INSERT_ID();
 
 -- Generate a unique link
-SET @link = CONCAT(@file_id, '-', UUID());
+##SET @link = CONCAT(@file_id, '-', UUID());
 
 -- Insert the link into the 'links' table
-INSERT INTO links (file_id, link, ttl, created_at)
-VALUES (@file_id, @link, 24, NOW());
+##INSERT INTO links (file_id, link, ttl, created_at)
+##VALUES (@file_id, @link, 24, NOW());
 
-CREATE TRIGGER update_links_count AFTER INSERT ON links
+CREATE TRIGGER update_links_count AFTER INSERT ON link
 FOR EACH ROW
-	UPDATE files
+	UPDATE file  
 	SET links = COALESCE(links, 0) + 1
 	WHERE id = NEW.file_id;
 
-DROP TRIGGER update_links_count;
+##DROP TRIGGER update_links_count;
 
-CREATE TRIGGER decrease_links_count AFTER DELETE ON links
+CREATE TRIGGER decrease_links_count AFTER DELETE ON link
 FOR EACH ROW
-	UPDATE files
+	UPDATE file
 	SET links = links - 1
 	WHERE id = OLD.file_id;
+    
+##DROP TRIGGER decrease_links_count;
 
-DROP TRIGGER decrease_links_count;
+delimiter |
 
 
 CREATE EVENT delete_files_event
 ON SCHEDULE EVERY 1 MINUTE
 DO
-	DELETE FROM files WHERE links = 0;
+BEGIN   -- Check if lock is taken (by uploadFile)
+	IF IS_FREE_LOCK('file_update_lock') THEN
+		-- Perform the deletion logic
+		DELETE FROM file WHERE links = 0;
+          END IF;
+     END |
+delimiter ;
 
-
-DROP EVENT delete_files_event;
-
+##DROP EVENT delete_files_event;
+    
 CREATE EVENT delete_expired_links
 ON SCHEDULE EVERY 1 MINUTE -- Adjust the schedule as needed
 DO
-  DELETE FROM links WHERE created_at <= NOW() - INTERVAL ttl MINUTE;
+  DELETE FROM link WHERE created_at <= NOW() - INTERVAL ttl MINUTE;
 
 SELECT IS_USED_LOCK('file_update_lock');
 SELECT IS_FREE_LOCK('file_update_lock');
 
-SELECT * from files;
-SELECT * from links;
+SELECT * from file;
+SELECT * from link;
