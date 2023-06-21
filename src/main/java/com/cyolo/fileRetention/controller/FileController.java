@@ -52,8 +52,8 @@ public class FileController {
         if(file.isEmpty()){
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
-        // Retrieve the file data as a byte array from the repository or service
-        byte[] imageData = file.get().getFileData();// Fetch the image data by imageId
+        // Retrieve the file data from the service
+        byte[] imageData = file.get().getFileData();
         Resource resource = new ByteArrayResource(imageData);
 
         // Set the response headers

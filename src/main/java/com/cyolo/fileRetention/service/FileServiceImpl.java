@@ -47,6 +47,7 @@ public class FileServiceImpl implements FileService {
             File image = new File(file.getBytes(), file.getOriginalFilename(), fileHash);
             logger.info("Saving new file in Files table");
             File savedImage = fileRepository.save(image);
+            logger.info("File saved in file table");
             return linkService.createLink(savedImage.getId(),retentionTime);
 
         }
@@ -59,6 +60,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public Optional<File> retrieve(Long imageId) {
+        logger.info("Retrieving file : " + imageId);
         return fileRepository.findById(imageId);
     }
 }

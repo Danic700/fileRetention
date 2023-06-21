@@ -24,14 +24,15 @@ public class LinkServiceImpl implements LinkService {
     @Override
     public Optional<Link> createLink(Long fileId, int ttl) {
         Link link = new Link(fileId, UUID.randomUUID().toString(), ttl);
-        logger.info("Creating new link in Links table");
+        logger.info("Creating new link in Link table");
         Optional<Link>  newLink = Optional.of(linkRepository.save(link));
+        logger.info("New link created in Link table");
         return newLink;
     }
 
     @Override
     public Optional<Link> getLink(String uuid) {
-        logger.info("Retrieving link from Links table");
+        logger.info("Retrieving link data from Link table" + uuid);
         return linkRepository.findByLink(uuid);
     }
 
