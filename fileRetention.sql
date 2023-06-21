@@ -1,3 +1,6 @@
+CREATE SCHEMA fileretention;
+USE fileretention;
+
 CREATE TABLE file (
   id INT AUTO_INCREMENT PRIMARY KEY,
   file_data MEDIUMBLOB,
@@ -18,19 +21,6 @@ CREATE TABLE link (
   FOREIGN KEY (file_id) REFERENCES file(id)
 );
 
--- Insert the file into the 'files' table
-##INSERT INTO files (file_data, file_name, file_hash, created_at)
-##VALUES (LOAD_FILE('C:\Users\rezed\Downloads\StudyCertificateDanielCohen.jpg'), 'example.jpg', 'abcd12345', NOW());
-
--- Retrieve the ID of the inserted file
-##SET @file_id = LAST_INSERT_ID();
-
--- Generate a unique link
-##SET @link = CONCAT(@file_id, '-', UUID());
-
--- Insert the link into the 'links' table
-##INSERT INTO links (file_id, link, ttl, created_at)
-##VALUES (@file_id, @link, 24, NOW());
 
 CREATE TRIGGER update_links_count AFTER INSERT ON link
 FOR EACH ROW
@@ -38,7 +28,6 @@ FOR EACH ROW
 	SET links = COALESCE(links, 0) + 1
 	WHERE id = NEW.file_id;
 
-##DROP TRIGGER update_links_count;
 
 CREATE TRIGGER decrease_links_count AFTER DELETE ON link
 FOR EACH ROW
@@ -46,7 +35,6 @@ FOR EACH ROW
 	SET links = links - 1
 	WHERE id = OLD.file_id;
     
-##DROP TRIGGER decrease_links_count;
 
 delimiter |
 
@@ -62,15 +50,8 @@ BEGIN   -- Check if lock is taken (by uploadFile)
      END |
 delimiter ;
 
-##DROP EVENT delete_files_event;
     
 CREATE EVENT delete_expired_links
 ON SCHEDULE EVERY 1 MINUTE -- Adjust the schedule as needed
 DO
   DELETE FROM link WHERE created_at <= NOW() - INTERVAL ttl MINUTE;
-
-SELECT IS_USED_LOCK('file_update_lock');
-SELECT IS_FREE_LOCK('file_update_lock');
-
-SELECT * from file;
-SELECT * from link;
