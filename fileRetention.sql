@@ -1,4 +1,5 @@
 CREATE SCHEMA fileretention;
+USE fileretention;
 
 CREATE TABLE file (
   id INT AUTO_INCREMENT PRIMARY KEY,
