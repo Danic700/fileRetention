@@ -30,8 +30,6 @@ public class File {
     private LocalDateTime createdAt;
 
 
-    // Constructors, getters, and setters
-
     public File() {
     }
 
@@ -42,10 +40,6 @@ public class File {
         this.links = null;
         this.createdAt = LocalDateTime.now();
     }
-
-    // Getter and Setter methods
-
-    // ... (getter and setter methods for other fields)
 
 
 }

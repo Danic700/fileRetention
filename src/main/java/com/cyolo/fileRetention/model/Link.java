@@ -26,8 +26,6 @@ public class Link {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // Constructors, getters, and setters
-
     public Link() {
     }
 
@@ -38,7 +36,4 @@ public class Link {
         this.createdAt = LocalDateTime.now();
     }
 
-    // Getter and Setter methods
-
-    // ... (getter and setter methods for other fields)
 }
