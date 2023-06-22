@@ -2,7 +2,9 @@ _Ephemeral File Sharing -_
 
 The file retention system allows users to upload images of up to 10mb in size and save them for a requested number of minutes.
 
-A unique link will be generated for every image uploaded, once the retention time has passed for a link it will be deleted, once all unique links for an image are deleted that image will be deleted as well.
+A url will be generated for every image uploaded, once the retention time has passed for a url it will be deleted, once all urls for an image are deleted that image will be deleted as well.
+
+The storage layer conserves space by only storing 1 copy of an image even if that image was uploaded multiple times. 
 
 
 **Installation guide:**
@@ -37,9 +39,9 @@ Example of tables:
 
 
 
-There are two SQL events that run in the background once every minute, one for deleting links whose ttl (retention time) has passed and another for deleting files with 0 links.
+There are two SQL events that run in the background once every minute, one for deleting links whose ttl (retention time) has passed and another for deleting files with 0 links which also cleans up the storage of the files.
 
-A locking mechanism was implemented on the File table for each time a file gets uploaded to handle a case in which we try to add a link to a duplicate file which could expire at a certain moment an SQL event might try to delete it.
+A locking mechanism was implemented on the File table to handle a case in which a duplicate file gets uploaded and during it's processing and link creation an SQL event might try to delete it.
 Refer to fileRetention.SQL and fileServiceImpl.java for more information.
 
 
